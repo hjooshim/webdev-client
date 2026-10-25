@@ -9,13 +9,19 @@ export default function LabsLayout({
     <>
       <KambazNavigation />
       <div className="wd-main-content-offset p-3">
-        <table>
+        <table className="w-full table-fixed">
+          <colgroup>
+            <col className="w-[100px]" />
+            <col />
+          </colgroup>
           <tbody>
             <tr>
-              <td valign="top" width="100px">
+              <td valign="top" className="w-[100px]">
                 <TOC />
               </td>
-              <td valign="top">{children}</td>
+              <td valign="top" className="min-w-0">
+                <div className="min-w-0 overflow-x-auto">{children}</div>
+              </td>
             </tr>
           </tbody>
         </table>
