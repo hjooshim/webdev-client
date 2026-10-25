@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  outputFileTracingIncludes: {
+    "/labs/lab3": ["./app/labs/lab3/**/*"],
+  },
 };
 
 export default nextConfig;
