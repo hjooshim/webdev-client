@@ -30,7 +30,7 @@ export default async function PeopleTable({
           {enrolled.map((user) => (
             <tr key={user._id} className="odd:bg-neutral-50">
               <td className="wd-full-name p-2 text-nowrap">
-                <FaUserCircle className="me-2 inline align-middle text-3xl text-neutral-500" />
+                <FaUserCircle className="me-2 inline align-middle text-4xl text-neutral-500" />
                 <span className="wd-first-name">{user.firstName}</span>{" "}
                 <span className="wd-last-name">{user.lastName}</span>
               </td>

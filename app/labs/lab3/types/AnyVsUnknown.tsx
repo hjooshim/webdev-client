@@ -4,12 +4,8 @@ function lengthOf(value: unknown): number {
   return 0;
 }
 
-function upperCaseString(value: unknown): string {
-  return typeof value === "string" ? value.toUpperCase() : "not a string";
-}
-
 export default function AnyVsUnknown() {
-  const anything: unknown = "hello";
+  const anything: any = "hello";
   const parsed: unknown = JSON.parse('{"name": "Alice"}');
   const name =
     typeof parsed === "object" && parsed !== null && "name" in parsed
@@ -19,7 +15,7 @@ export default function AnyVsUnknown() {
     <div id="wd-any-vs-unknown">
       <h4>any vs unknown</h4>
       any disables checks; unknown requires narrowing. <br />
-      upperCaseString(anything) = {upperCaseString(anything)} <br />
+      anything.toUpperCase() = {anything.toUpperCase()} <br />
       lengthOf(&quot;hello&quot;) = {lengthOf("hello")} <br />
       lengthOf([1, 2, 3]) = {lengthOf([1, 2, 3])} <br />
       lengthOf(42) = {lengthOf(42)} <br />
