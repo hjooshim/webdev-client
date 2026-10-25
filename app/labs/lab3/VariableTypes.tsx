@@ -1,15 +1,19 @@
 export default function VariableTypes() {
-  const numberVariable = 123;
-  const floatingPointNumber = 234.345;
-  const stringVariable = "Hello World!";
-  const booleanVariable = true;
-  const isNumber = typeof numberVariable;
-  const isString = typeof stringVariable;
-  const isBoolean = typeof booleanVariable;
-  const sampleCount = 42;
-  const sampleLabel = "Lab 3";
-  const isSampleCount = typeof sampleCount;
-  const isSampleLabel = typeof sampleLabel;
+  let numberVariable = 123;
+  let floatingPointNumber = 234.345;
+  let stringVariable = "Hello World!";
+  let booleanVariable = true;
+  let isNumber = typeof numberVariable;
+  let isString = typeof stringVariable;
+  let isBoolean = typeof booleanVariable;
+  let personalCount = 7;
+  let personalLabel = "TypeScript";
+  let personalCountType = typeof personalCount;
+  let personalLabelType = typeof personalLabel;
+  let sampleCount = 42;
+  let sampleLabel = "Lab 3";
+  let isSampleCount = typeof sampleCount;
+  let isSampleLabel = typeof sampleLabel;
   return (
     <div id="wd-variable-types">
       <h4>Variables Types</h4>
@@ -20,6 +24,8 @@ export default function VariableTypes() {
       isNumber = {isNumber} <br />
       isString = {isString} <br />
       isBoolean = {isBoolean} <br />
+      personalCount = {personalCount} ({personalCountType}) <br />
+      personalLabel = {personalLabel} ({personalLabelType}) <br />
       sampleCount = {sampleCount} ({isSampleCount}) <br />
       sampleLabel = {sampleLabel} ({isSampleLabel})
       <hr />

@@ -9,9 +9,9 @@ export default function SimpleArrays() {
   const htmlArray1: ReactNode[] = [
     <li key={1}>Buy milk</li>,
     <li key={2}>Feed the pets</li>,
-    <li key={3}>Water the plants</li>,
-    <li key={4}>Call the dentist</li>,
   ];
+  htmlArray1.push(<li key={3}>Water the plants</li>);
+  htmlArray1.push(<li key={4}>Call the dentist</li>);
   const variableArray1 = [
     functionScoped,
     blockScoped,

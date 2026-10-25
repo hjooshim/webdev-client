@@ -1,8 +1,9 @@
 export default function VariablesAndConstants() {
-  const functionScoped = 2;
-  const blockScoped = 5;
+  var functionScoped = 2;
+  let blockScoped = 5;
   const constant1 = functionScoped - blockScoped;
-  const studentName = "Hyunjoo Shim";
+  let studentName = "Hyunjoo";
+  studentName += " Shim";
   const greeting = `Hello, ${studentName}!`;
   const sampleSum = functionScoped + blockScoped;
   return (
