@@ -85,7 +85,7 @@ test("modules and added lessons are scoped to their owning course", async () => 
     assert.ok(rocket.text.includes(title));
     assert.ok(!aero.text.includes(title));
   }
-  assert.ok(aero.text.includes("Introduction to Aerodynamics"));
+  assert.ok(aero.text.includes("Fundamentals of Aerodynamics"));
 });
 
 test("assignment lists and editor defaults follow both course and assignment IDs", async () => {

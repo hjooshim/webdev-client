@@ -1,10 +1,21 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import * as db from "../../../../database";
+
 export default async function AssignmentEditor({
   params,
 }: {
   params: Promise<{ cid: string; aid: string }>;
 }) {
-  const { cid } = await params;
+  const { cid, aid } = await params;
+  const assignment = db.assignments.find(
+    (item) => item._id === aid && item.course === cid,
+  );
+
+  if (!assignment) {
+    notFound();
+  }
+
   return (
     <div id="wd-assignments-editor" className="max-w-2xl">
       <div className="mb-4">
@@ -13,9 +24,10 @@ export default async function AssignmentEditor({
         </label>
         <input
           id="wd-name"
-          defaultValue="A1 - ENV + HTML"
+          defaultValue={assignment.title}
           className="w-full rounded border border-neutral-300 px-3 py-2"
         />
+        <p className="mt-1 text-sm text-neutral-600">Assignment id: {aid}</p>
       </div>
       <div className="mb-4">
         <label htmlFor="wd-description" className="mb-1 block font-medium">
@@ -24,7 +36,7 @@ export default async function AssignmentEditor({
         <textarea
           id="wd-description"
           rows={5}
-          defaultValue="The assignment is available online Submit a link to the landing page of your Web application running on Vercel."
+          defaultValue={assignment.description}
           className="w-full rounded border border-neutral-300 px-3 py-2"
         />
       </div>
@@ -34,7 +46,7 @@ export default async function AssignmentEditor({
         </label>
         <input
           id="wd-points"
-          defaultValue={100}
+          defaultValue={assignment.points}
           className="w-full flex-1 rounded border border-neutral-300 px-3 py-2"
         />
       </div>
@@ -128,7 +140,7 @@ export default async function AssignmentEditor({
           <input
             type="date"
             id="wd-due-date"
-            defaultValue="2024-05-13"
+            defaultValue={assignment.due}
             className="mb-3 w-full rounded border border-neutral-300 px-3 py-2"
           />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -139,7 +151,7 @@ export default async function AssignmentEditor({
               <input
                 type="date"
                 id="wd-available-from"
-                defaultValue="2024-05-06"
+                defaultValue={assignment.available}
                 className="w-full rounded border border-neutral-300 px-3 py-2"
               />
             </div>
