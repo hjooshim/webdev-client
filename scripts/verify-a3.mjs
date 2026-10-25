@@ -48,6 +48,16 @@ test("addition URLs compute unseen integer, decimal and negative operands", asyn
   }
 });
 
+test("Labs navigation marks the current lab and keeps the chapter link external", async () => {
+  for (const lab of ["lab1", "lab3"]) {
+    const { html } = await page(`/labs/${lab}`);
+    const currentLinks = [...html.matchAll(/<a\b[^>]*aria-current="page"[^>]*>/g)];
+    assert.equal(currentLinks.length, 1);
+    assert.ok(currentLinks[0][0].includes(`href="/labs/${lab}"`));
+    assert.match(html, /href="https:\/\/kambaz.dev\/book\/ch3"/);
+  }
+});
+
 test("Dashboard cards encode database course IDs", async () => {
   const { html, text } = await page("/dashboard");
   for (const id of ["RS101", "RS102", "RS103", "RS104"]) {
