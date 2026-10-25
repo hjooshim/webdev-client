@@ -101,6 +101,9 @@ test("rosters follow enrollments including the personal and AI additions", async
     assert.ok(rocket.text.includes(name));
     assert.ok(aero.text.includes(name));
   }
-  assert.notEqual(rocket.text, aero.text);
+  assert.ok(rocket.text.includes("Natasha Romanoff"));
+  assert.ok(!aero.text.includes("Natasha Romanoff"));
+  assert.ok(aero.text.includes("Pepper Potts"));
+  assert.ok(!rocket.text.includes("Pepper Potts"));
   assert.ok(aero.text.includes("People"));
 });
