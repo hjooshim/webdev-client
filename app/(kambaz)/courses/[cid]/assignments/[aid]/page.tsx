@@ -1,30 +1,52 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import * as db from "../../../../database";
+import { useState, type FormEvent } from "react";
+import { notFound, useParams, useRouter } from "next/navigation";
+import {
+  emptyAssignment,
+  useAssignmentsStore,
+  type Assignment,
+} from "../../../../store/assignmentsStore";
 
-export default async function AssignmentEditor({
-  params,
+function AssignmentForm({
+  initial,
+  cid,
+  aid,
 }: {
-  params: Promise<{ cid: string; aid: string }>;
+  initial: Assignment;
+  cid: string;
+  aid: string;
 }) {
-  const { cid, aid } = await params;
-  const assignment = db.assignments.find(
-    (item) => item._id === aid && item.course === cid,
-  );
-
-  if (!assignment) {
-    notFound();
-  }
+  const [assignment, setAssignment] = useState({ ...initial });
+  const { addAssignment, updateAssignment } = useAssignmentsStore();
+  const router = useRouter();
+  const save = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!assignment.title.trim()) return;
+    const draft = {
+      ...assignment,
+      title: assignment.title.trim(),
+      course: cid,
+    };
+    if (aid === "new") addAssignment(draft);
+    else updateAssignment(draft);
+    router.push(`/courses/${cid}/assignments`);
+  };
 
   return (
-    <div id="wd-assignments-editor" className="max-w-2xl">
+    <form id="wd-assignments-editor" onSubmit={save} className="max-w-2xl">
       <div className="mb-4">
         <label htmlFor="wd-name" className="mb-1 block font-medium">
           Assignment Name
         </label>
         <input
           id="wd-name"
-          defaultValue={assignment.title}
+          required
+          value={assignment.title}
+          onChange={(event) =>
+            setAssignment({ ...assignment, title: event.target.value })
+          }
           className="w-full rounded border border-neutral-300 px-3 py-2"
         />
         <p className="mt-1 text-sm text-neutral-600">Assignment id: {aid}</p>
@@ -36,17 +58,29 @@ export default async function AssignmentEditor({
         <textarea
           id="wd-description"
           rows={5}
-          defaultValue={assignment.description}
+          value={assignment.description}
+          onChange={(event) =>
+            setAssignment({ ...assignment, description: event.target.value })
+          }
           className="w-full rounded border border-neutral-300 px-3 py-2"
         />
       </div>
       <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
-        <label htmlFor="wd-points" className="font-medium sm:w-40 sm:text-right">
+        <label
+          htmlFor="wd-points"
+          className="font-medium sm:w-40 sm:text-right"
+        >
           Points
         </label>
         <input
           id="wd-points"
-          defaultValue={assignment.points}
+          type="number"
+          min="0"
+          required
+          value={assignment.points}
+          onChange={(event) =>
+            setAssignment({ ...assignment, points: Number(event.target.value) })
+          }
           className="w-full flex-1 rounded border border-neutral-300 px-3 py-2"
         />
       </div>
@@ -56,7 +90,10 @@ export default async function AssignmentEditor({
         </label>
         <select
           id="wd-group"
-          defaultValue="ASSIGNMENTS"
+          value={assignment.group}
+          onChange={(event) =>
+            setAssignment({ ...assignment, group: event.target.value })
+          }
           className="w-full flex-1 rounded border border-neutral-300 bg-white px-3 py-2"
         >
           <option value="ASSIGNMENTS">ASSIGNMENTS</option>
@@ -74,7 +111,10 @@ export default async function AssignmentEditor({
         </label>
         <select
           id="wd-display-grade-as"
-          defaultValue="PERCENTAGE"
+          value={assignment.displayGrade}
+          onChange={(event) =>
+            setAssignment({ ...assignment, displayGrade: event.target.value })
+          }
           className="w-full flex-1 rounded border border-neutral-300 bg-white px-3 py-2"
         >
           <option value="PERCENTAGE">Percentage</option>
@@ -93,7 +133,13 @@ export default async function AssignmentEditor({
         <div className="flex-1 rounded border border-neutral-300 p-3">
           <select
             id="wd-submission-type"
-            defaultValue="ONLINE"
+            value={assignment.submissionType}
+            onChange={(event) =>
+              setAssignment({
+                ...assignment,
+                submissionType: event.target.value,
+              })
+            }
             className="mb-3 w-full rounded border border-neutral-300 bg-white px-3 py-2"
           >
             <option value="ONLINE">Online</option>
@@ -102,36 +148,111 @@ export default async function AssignmentEditor({
           </select>
           <div className="mb-2 font-medium">Online Entry Options</div>
           <div className="flex items-center gap-2">
-            <input type="checkbox" id="wd-text-entry" />
+            <input
+              type="checkbox"
+              id="wd-text-entry"
+              checked={assignment.entryOptions.includes("TEXT_ENTRY")}
+              onChange={(event) =>
+                setAssignment({
+                  ...assignment,
+                  entryOptions: event.target.checked
+                    ? [...assignment.entryOptions, "TEXT_ENTRY"]
+                    : assignment.entryOptions.filter(
+                        (option) => option !== "TEXT_ENTRY",
+                      ),
+                })
+              }
+            />
             <label htmlFor="wd-text-entry">Text Entry</label>
           </div>
           <div className="flex items-center gap-2">
-            <input type="checkbox" id="wd-website-url" defaultChecked />
+            <input
+              type="checkbox"
+              id="wd-website-url"
+              checked={assignment.entryOptions.includes("WEBSITE_URL")}
+              onChange={(event) =>
+                setAssignment({
+                  ...assignment,
+                  entryOptions: event.target.checked
+                    ? [...assignment.entryOptions, "WEBSITE_URL"]
+                    : assignment.entryOptions.filter(
+                        (option) => option !== "WEBSITE_URL",
+                      ),
+                })
+              }
+            />
             <label htmlFor="wd-website-url">Website URL</label>
           </div>
           <div className="flex items-center gap-2">
-            <input type="checkbox" id="wd-media-recordings" />
+            <input
+              type="checkbox"
+              id="wd-media-recordings"
+              checked={assignment.entryOptions.includes("MEDIA_RECORDINGS")}
+              onChange={(event) =>
+                setAssignment({
+                  ...assignment,
+                  entryOptions: event.target.checked
+                    ? [...assignment.entryOptions, "MEDIA_RECORDINGS"]
+                    : assignment.entryOptions.filter(
+                        (option) => option !== "MEDIA_RECORDINGS",
+                      ),
+                })
+              }
+            />
             <label htmlFor="wd-media-recordings">Media Recordings</label>
           </div>
           <div className="flex items-center gap-2">
-            <input type="checkbox" id="wd-student-annotation" />
+            <input
+              type="checkbox"
+              id="wd-student-annotation"
+              checked={assignment.entryOptions.includes("STUDENT_ANNOTATION")}
+              onChange={(event) =>
+                setAssignment({
+                  ...assignment,
+                  entryOptions: event.target.checked
+                    ? [...assignment.entryOptions, "STUDENT_ANNOTATION"]
+                    : assignment.entryOptions.filter(
+                        (option) => option !== "STUDENT_ANNOTATION",
+                      ),
+                })
+              }
+            />
             <label htmlFor="wd-student-annotation">Student Annotation</label>
           </div>
           <div className="flex items-center gap-2">
-            <input type="checkbox" id="wd-file-upload" />
+            <input
+              type="checkbox"
+              id="wd-file-upload"
+              checked={assignment.entryOptions.includes("FILE_UPLOADS")}
+              onChange={(event) =>
+                setAssignment({
+                  ...assignment,
+                  entryOptions: event.target.checked
+                    ? [...assignment.entryOptions, "FILE_UPLOADS"]
+                    : assignment.entryOptions.filter(
+                        (option) => option !== "FILE_UPLOADS",
+                      ),
+                })
+              }
+            />
             <label htmlFor="wd-file-upload">File Uploads</label>
           </div>
         </div>
       </div>
       <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-start sm:gap-4">
-        <span className="font-medium sm:w-40 sm:pt-3 sm:text-right">Assign</span>
+        <span className="font-medium sm:w-40 sm:pt-3 sm:text-right">
+          Assign
+        </span>
         <div className="flex-1 rounded border border-neutral-300 p-3">
           <label htmlFor="wd-assign-to" className="mb-1 block font-medium">
             Assign to
           </label>
           <input
             id="wd-assign-to"
-            defaultValue="Everyone"
+            value={assignment.assignTo}
+            onChange={(event) =>
+              setAssignment({ ...assignment, assignTo: event.target.value })
+            }
             className="mb-3 w-full rounded border border-neutral-300 px-3 py-2"
           />
           <label htmlFor="wd-due-date" className="mb-1 block font-medium">
@@ -140,29 +261,47 @@ export default async function AssignmentEditor({
           <input
             type="date"
             id="wd-due-date"
-            defaultValue={assignment.due}
+            value={assignment.due}
+            onChange={(event) =>
+              setAssignment({ ...assignment, due: event.target.value })
+            }
             className="mb-3 w-full rounded border border-neutral-300 px-3 py-2"
           />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor="wd-available-from" className="mb-1 block font-medium">
+              <label
+                htmlFor="wd-available-from"
+                className="mb-1 block font-medium"
+              >
                 Available from
               </label>
               <input
                 type="date"
                 id="wd-available-from"
-                defaultValue={assignment.available}
+                value={assignment.available}
+                onChange={(event) =>
+                  setAssignment({
+                    ...assignment,
+                    available: event.target.value,
+                  })
+                }
                 className="w-full rounded border border-neutral-300 px-3 py-2"
               />
             </div>
             <div>
-              <label htmlFor="wd-available-until" className="mb-1 block font-medium">
+              <label
+                htmlFor="wd-available-until"
+                className="mb-1 block font-medium"
+              >
                 Until
               </label>
               <input
                 type="date"
                 id="wd-available-until"
-                defaultValue="2024-05-20"
+                value={assignment.until}
+                onChange={(event) =>
+                  setAssignment({ ...assignment, until: event.target.value })
+                }
                 className="w-full rounded border border-neutral-300 px-3 py-2"
               />
             </div>
@@ -175,6 +314,10 @@ export default async function AssignmentEditor({
         </label>
         <textarea
           id="wd-ai-editor-notes"
+          value={assignment.notes}
+          onChange={(event) =>
+            setAssignment({ ...assignment, notes: event.target.value })
+          }
           rows={3}
           className="w-full rounded border border-neutral-300 px-3 py-2"
         />
@@ -188,14 +331,30 @@ export default async function AssignmentEditor({
         >
           Cancel
         </Link>
-        <Link
-          href={`/courses/${cid}/assignments`}
+        <button
+          type="submit"
           id="wd-save"
           className="rounded bg-red-600 px-4 py-2 text-white no-underline"
         >
           Save
-        </Link>
+        </button>
       </div>
-    </div>
+    </form>
+  );
+}
+
+export default function AssignmentEditor() {
+  const { cid, aid } = useParams<{ cid: string; aid: string }>();
+  const assignment = useAssignmentsStore((state) =>
+    state.assignments.find((row) => row._id === aid && row.course === cid),
+  );
+  if (aid !== "new" && !assignment) notFound();
+  return (
+    <AssignmentForm
+      key={`${cid}/${aid}`}
+      initial={assignment ?? { ...emptyAssignment, course: cid }}
+      cid={cid}
+      aid={aid}
+    />
   );
 }

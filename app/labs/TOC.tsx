@@ -4,16 +4,84 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  { href: "/labs", id: "wd-home-link", label: "Home", active: () => false, external: false },
-  { href: "/labs/lab1", id: "wd-toc-lab1", label: "Lab 1", active: (pathname: string) => pathname.endsWith("/lab1") || pathname.includes("/lab1/"), external: false },
-  { href: "/labs/lab2", id: "wd-toc-lab2", label: "Lab 2", active: (pathname: string) => pathname.includes("/lab2"), external: false },
-  { href: "/labs/lab3", id: "wd-toc-lab3", label: "Lab 3", active: (pathname: string) => pathname.includes("/lab3"), external: false },
-  { href: "/labs/lab4", id: "wd-toc-lab4", label: "Lab 4", active: (pathname: string) => pathname.includes("/lab4"), external: false },
-  { href: "/labs/lab5", id: "wd-toc-lab5", label: "Lab 5", active: (pathname: string) => pathname.includes("/lab5"), external: false },
-  { href: "/", id: "wd-kambaz-link", label: "Kambaz", active: () => false, external: false },
-  { href: "https://github.com/hjooshim/webdev-client", id: "wd-github", label: "GitHub", active: () => false, external: true },
-  { href: "/book/ch1", id: "wd-toc-book-link", label: "Chapter 1", active: () => false, external: false },
-  { href: "https://kambaz.dev/book/ch3", id: "wd-book-ch3-link", label: "Book Ch3", active: () => false, external: true },
+  {
+    href: "/labs",
+    id: "wd-home-link",
+    label: "Home",
+    active: () => false,
+    external: false,
+  },
+  {
+    href: "/labs/lab1",
+    id: "wd-toc-lab1",
+    label: "Lab 1",
+    active: (pathname: string) =>
+      pathname.endsWith("/lab1") || pathname.includes("/lab1/"),
+    external: false,
+  },
+  {
+    href: "/labs/lab2",
+    id: "wd-toc-lab2",
+    label: "Lab 2",
+    active: (pathname: string) => pathname.includes("/lab2"),
+    external: false,
+  },
+  {
+    href: "/labs/lab3",
+    id: "wd-toc-lab3",
+    label: "Lab 3",
+    active: (pathname: string) => pathname.includes("/lab3"),
+    external: false,
+  },
+  {
+    href: "/labs/lab4",
+    id: "wd-toc-lab4",
+    label: "Lab 4",
+    active: (pathname: string) => pathname.includes("/lab4"),
+    external: false,
+  },
+  {
+    href: "/labs/lab5",
+    id: "wd-toc-lab5",
+    label: "Lab 5",
+    active: (pathname: string) => pathname.includes("/lab5"),
+    external: false,
+  },
+  {
+    href: "/",
+    id: "wd-kambaz-link",
+    label: "Kambaz",
+    active: () => false,
+    external: false,
+  },
+  {
+    href: "https://github.com/hjooshim/webdev-client",
+    id: "wd-github",
+    label: "GitHub",
+    active: () => false,
+    external: true,
+  },
+  {
+    href: "/book/ch1",
+    id: "wd-toc-book-link",
+    label: "Chapter 1",
+    active: () => false,
+    external: false,
+  },
+  {
+    href: "https://kambaz.dev/book/ch3",
+    id: "wd-book-ch3-link",
+    label: "Book Ch3",
+    active: () => false,
+    external: true,
+  },
+  {
+    href: "https://kambaz.dev/book/ch4",
+    id: "wd-book-ch4-link",
+    label: "Book Ch4",
+    active: () => false,
+    external: true,
+  },
 ];
 
 const activeStyle = {
@@ -40,7 +108,12 @@ export default function TOC() {
           return (
             <li key={link.id}>
               {link.external ? (
-                <a href={link.href} {...attributes} target={link.id === "wd-github" ? "_blank" : undefined} rel={link.id === "wd-github" ? "noreferrer" : undefined}>
+                <a
+                  href={link.href}
+                  {...attributes}
+                  target={link.id === "wd-github" ? "_blank" : undefined}
+                  rel={link.id === "wd-github" ? "noreferrer" : undefined}
+                >
                   {link.label}
                 </a>
               ) : (
