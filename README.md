@@ -11,6 +11,10 @@ Next.js runs on port 3000 and Express runs on port 4000. Open
 [Dashboard](http://localhost:3000/dashboard). Data written through Kambaz
 survives a browser refresh while Express is running.
 
+Run `node --test scripts/verify-a5.mjs` with both services running to check Lab 5
+and the Kambaz API proxy. To check the deployment, set `A5_BASE_URL` to the
+Vercel preview URL and `NEXT_PUBLIC_HTTP_SERVER` to the public Express URL.
+
 Set `NEXT_PUBLIC_HTTP_SERVER` to the public HTTPS Express origin in the Vercel
 A5 preview environment before deploying. This value is built into the client.
 
