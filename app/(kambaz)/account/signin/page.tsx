@@ -4,30 +4,24 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAccountContext } from "../AccountContext";
-import { useUsersStore } from "../../store/usersStore";
+import { signin as signinRequest } from "../../client";
+import { useRequest } from "@/app/useRequest";
 
 export default function Signin() {
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
   });
-  const [error, setError] = useState("");
+  const { run, pending, error } = useRequest();
   const { setCurrentUser } = useAccountContext();
-  const users = useUsersStore((state) => state.users);
   const router = useRouter();
   const signin = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const user = users.find(
-      (row) =>
-        row.username === credentials.username &&
-        row.password === credentials.password,
-    );
-    if (!user) {
-      setError("Username or password is incorrect.");
-      return;
-    }
-    setCurrentUser(user);
-    router.push("/dashboard");
+    void run(async () => {
+      const user = await signinRequest(credentials);
+      setCurrentUser(user);
+      router.push("/dashboard");
+    });
   };
 
   return (
@@ -78,6 +72,7 @@ export default function Signin() {
       <button
         id="wd-signin-btn"
         type="submit"
+        disabled={pending}
         className="mb-2 block w-full rounded bg-blue-600 px-3 py-2 text-white"
       >
         Sign in

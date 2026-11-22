@@ -58,28 +58,30 @@ export default function CourseCard({
             Go
           </Link>
         )}
-        <button
-          type="button"
-          onClick={onEdit}
-          className="wd-edit-course rounded border border-blue-600 px-3 py-1.5 text-sm text-blue-700"
-        >
-          Edit
-        </button>
-        <button
-          type="button"
-          onClick={onDelete}
-          className="wd-delete-course rounded bg-red-600 px-3 py-1.5 text-sm text-white"
-        >
-          Delete
-        </button>
         {signedIn && (
-          <button
-            type="button"
-            onClick={onEnrollment}
-            className={`rounded px-3 py-1.5 text-sm text-white ${enrolled ? "bg-red-600" : "bg-green-700"}`}
-          >
-            {enrolled ? "Unenroll" : "Enroll"}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={onEdit}
+              className="wd-edit-course rounded border border-blue-600 px-3 py-1.5 text-sm text-blue-700"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="wd-delete-course rounded bg-red-600 px-3 py-1.5 text-sm text-white"
+            >
+              Delete
+            </button>
+            <button
+              type="button"
+              onClick={onEnrollment}
+              className={`rounded px-3 py-1.5 text-sm text-white ${enrolled ? "bg-red-600" : "bg-green-700"}`}
+            >
+              {enrolled ? "Unenroll" : "Enroll"}
+            </button>
+          </>
         )}
       </div>
     </div>

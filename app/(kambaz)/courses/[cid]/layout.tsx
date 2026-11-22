@@ -3,31 +3,75 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { FaAlignJustify } from "react-icons/fa6";
 import { notFound, useParams, useRouter } from "next/navigation";
-import { useCoursesStore } from "../../store/coursesStore";
-import { useEnrollmentsStore } from "../../store/enrollmentsStore";
+import { findCourse, findModules, findAssignments, getEnrollments } from "../../client";
+import { useAssignmentsStore } from "../../store/assignmentsStore";
+import { useModulesStore } from "../../store/modulesStore";
+import type { Course } from "../../store/types";
+import { hasStatus, httpError } from "@/app/http";
 import { useAccountContext } from "../../account/AccountContext";
 import Breadcrumb from "./Breadcrumb";
 import CourseNavigation from "./Navigation";
 
 export default function CoursesLayout({ children }: { children: ReactNode }) {
   const { cid } = useParams<{ cid: string }>();
-  const course = useCoursesStore((state) =>
-    state.courses.find((row) => row._id === cid),
-  );
-  const enrollments = useEnrollmentsStore((state) => state.enrollments);
   const { currentUser } = useAccountContext();
+  return (
+    <CourseLayout key={`${cid}/${currentUser?._id ?? "guest"}`} cid={cid} userId={currentUser?._id}>
+      {children}
+    </CourseLayout>
+  );
+}
+
+function CourseLayout({
+  cid,
+  userId,
+  children,
+}: {
+  cid: string;
+  userId?: string;
+  children: ReactNode;
+}) {
+  const [course, setCourse] = useState<Course>();
+  const [error, setError] = useState("");
+  const [missing, setMissing] = useState(false);
   const [showCourseNav, setShowCourseNav] = useState(true);
   const router = useRouter();
-  const allowed =
-    !currentUser ||
-    enrollments.some(
-      (row) => row.user === currentUser._id && row.course === cid,
-    );
+
   useEffect(() => {
-    if (!allowed) router.replace("/dashboard");
-  }, [allowed, router]);
-  if (!course) notFound();
-  if (!allowed) return null;
+    const controller = new AbortController();
+    const { signal } = controller;
+    async function load() {
+      try {
+        const record = await findCourse(cid, signal);
+        if (userId) {
+          const enrollments = await getEnrollments(signal);
+          if (signal.aborted) return;
+          if (!enrollments.some((row) => row.course === cid)) {
+            router.replace("/dashboard");
+            return;
+          }
+        }
+        const [modules, assignments] = await Promise.all([
+          findModules(cid, signal),
+          findAssignments(cid, signal),
+        ]);
+        if (signal.aborted) return;
+        useModulesStore.getState().setModules(modules);
+        useAssignmentsStore.getState().setAssignments(assignments);
+        setCourse(record);
+      } catch (requestError) {
+        if (signal.aborted) return;
+        if (hasStatus(requestError, 404)) setMissing(true);
+        else setError(httpError(requestError));
+      }
+    }
+    void load();
+    return () => controller.abort();
+  }, [cid, router, userId]);
+
+  if (missing) notFound();
+  if (error) return <p role="alert" className="text-red-700">{error}</p>;
+  if (!course) return <p role="status">Loading course…</p>;
 
   return (
     <div id="wd-courses">

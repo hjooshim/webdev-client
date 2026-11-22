@@ -1,24 +1,18 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## Run Assignment 5 locally
 
-First, run the development server:
+Check out the `a5` branch of this repository and the
+[Express server](https://github.com/hjooshim/webdev-server/tree/a5) in sibling directories.
+Run `npm ci` and `npm run dev` in each directory with Node.js 22 or later.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Next.js runs on port 3000 and Express runs on port 4000. Open
+[Lab 5](http://localhost:3000/labs/lab5) or the
+[Dashboard](http://localhost:3000/dashboard). Data written through Kambaz
+survives a browser refresh while Express is running.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Set `NEXT_PUBLIC_HTTP_SERVER` to the public HTTPS Express origin in the Vercel
+A5 preview environment before deploying. This value is built into the client.
 
 ## Learn More
 

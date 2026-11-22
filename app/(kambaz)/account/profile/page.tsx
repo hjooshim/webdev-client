@@ -3,20 +3,25 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAccountContext } from "../AccountContext";
-import { useUsersStore } from "../../store/usersStore";
+import { signout, updateUser } from "../../client";
+import { useRequest } from "@/app/useRequest";
 import type { User } from "../../store/types";
 
 function ProfileForm({ user }: { user: User }) {
-  const [profile, setProfile] = useState({ ...user });
+  const [profile, setProfile] = useState({ ...user, password: "" });
   const [saved, setSaved] = useState(false);
   const { setCurrentUser } = useAccountContext();
-  const updateUser = useUsersStore((state) => state.updateUser);
+  const { run, pending, error } = useRequest();
   const router = useRouter();
   const save = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    updateUser(profile);
-    setCurrentUser({ ...profile });
-    setSaved(true);
+    void run(async () => {
+      const { password, ...details } = profile;
+      const updated = await updateUser({ ...details, ...(password && { password }) });
+      setCurrentUser(updated);
+      setProfile({ ...updated, password: "" });
+      setSaved(true);
+    });
   };
   const fields = [
     { key: "username", label: "Username", id: "wd-username", type: "text" },
@@ -53,10 +58,8 @@ function ProfileForm({ user }: { user: User }) {
       </label>
       <select
         id="wd-role"
+        disabled
         value={profile.role}
-        onChange={(event) =>
-          setProfile({ ...profile, role: event.target.value })
-        }
         className="mb-3 w-full rounded border border-neutral-300 bg-white px-3 py-2"
       >
         <option value="USER">User</option>
@@ -65,6 +68,7 @@ function ProfileForm({ user }: { user: User }) {
         <option value="STUDENT">Student</option>
         <option value="TA">Teaching assistant</option>
       </select>
+      {error && <p role="alert" className="mb-2 text-red-700">{error}</p>}
       {saved && (
         <p role="status" className="mb-2 text-green-700">
           Profile updated.
@@ -73,6 +77,7 @@ function ProfileForm({ user }: { user: User }) {
       <button
         type="submit"
         id="wd-update-profile"
+        disabled={pending}
         className="mb-2 block w-full rounded bg-blue-600 px-3 py-2 text-white"
       >
         Update
@@ -80,10 +85,12 @@ function ProfileForm({ user }: { user: User }) {
       <button
         type="button"
         id="wd-signout-btn"
-        onClick={() => {
+        disabled={pending}
+        onClick={() => void run(async () => {
+          await signout();
           setCurrentUser(null);
           router.push("/account/signin");
-        }}
+        })}
         className="block w-full rounded bg-red-600 px-3 py-2 text-white"
       >
         Sign out

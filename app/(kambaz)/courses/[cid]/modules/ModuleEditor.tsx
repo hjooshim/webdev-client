@@ -1,5 +1,6 @@
 "use client";
 
+import { useRequest } from "@/app/useRequest";
 import { useState, type FormEvent } from "react";
 import { useParams } from "next/navigation";
 import { useModulesStore } from "../../../store/modulesStore";
@@ -9,6 +10,7 @@ export default function ModuleEditor() {
   const [moduleName, setModuleName] = useState("");
   const { cid } = useParams<{ cid: string }>();
   const addModule = useModulesStore((state) => state.addModule);
+  const { run, pending, error } = useRequest();
   const close = () => {
     setModuleName("");
     setShow(false);
@@ -16,8 +18,10 @@ export default function ModuleEditor() {
   const add = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!moduleName.trim()) return;
-    addModule({ name: moduleName, course: cid });
-    close();
+    void run(async () => {
+      await addModule({ name: moduleName, course: cid });
+      close();
+    });
   };
 
   return (
@@ -70,6 +74,7 @@ export default function ModuleEditor() {
             <p className="mb-4 text-sm text-neutral-600">
               Try a personal module such as HS Study Notes.
             </p>
+            {error && <p role="alert" className="mb-2 text-red-700">{error}</p>}
             <div className="flex justify-end gap-2">
               <button
                 type="button"
@@ -81,7 +86,7 @@ export default function ModuleEditor() {
               <button
                 id="wd-add-module"
                 type="submit"
-                disabled={!moduleName.trim()}
+                disabled={pending || !moduleName.trim()}
                 className="rounded bg-red-600 px-3 py-2 text-white disabled:opacity-40"
               >
                 Add Module

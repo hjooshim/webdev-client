@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { HTTP_SERVER } from "@/app/http";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
@@ -62,6 +63,27 @@ const LINKS = [
     external: true,
   },
   {
+    href: "https://github.com/hjooshim/webdev-server",
+    id: "wd-server-github",
+    label: "Server GitHub",
+    active: () => false,
+    external: true,
+  },
+  ...(HTTP_SERVER ? [{
+    href: HTTP_SERVER,
+    id: "wd-server-link",
+    label: "Express Server",
+    active: () => false,
+    external: true,
+  }] : []),
+  {
+    href: "https://kambaz.dev/2026/fall/webdev/book/ch5",
+    id: "wd-book-ch5-link",
+    label: "Book Ch5",
+    active: () => false,
+    external: true,
+  },
+  {
     href: "/book/ch1",
     id: "wd-toc-book-link",
     label: "Chapter 1",
@@ -111,8 +133,8 @@ export default function TOC() {
                 <a
                   href={link.href}
                   {...attributes}
-                  target={link.id === "wd-github" ? "_blank" : undefined}
-                  rel={link.id === "wd-github" ? "noreferrer" : undefined}
+                  target="_blank"
+                  rel="noreferrer"
                 >
                   {link.label}
                 </a>

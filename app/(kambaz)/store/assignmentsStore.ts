@@ -1,15 +1,7 @@
 import { create } from "zustand";
-import seed from "../database/assignments.json";
-
-export type Assignment = (typeof seed)[number] & {
-  until: string;
-  group: string;
-  displayGrade: string;
-  submissionType: string;
-  entryOptions: string[];
-  assignTo: string;
-  notes: string;
-};
+import * as client from "../client";
+import type { Assignment } from "./types";
+export type { Assignment } from "./types";
 
 export const emptyAssignment: Assignment = {
   _id: "",
@@ -30,33 +22,27 @@ export const emptyAssignment: Assignment = {
 
 type AssignmentsState = {
   assignments: Assignment[];
-  addAssignment: (assignment: Assignment) => Assignment;
-  updateAssignment: (assignment: Assignment) => void;
-  deleteAssignment: (id: string, course: string) => void;
+  setAssignments: (assignments: Assignment[]) => void;
+  addAssignment: (assignment: Assignment) => Promise<void>;
+  updateAssignment: (assignment: Assignment) => Promise<void>;
+  deleteAssignment: (id: string) => Promise<void>;
 };
 
 export const useAssignmentsStore = create<AssignmentsState>((set) => ({
-  assignments: seed.map((assignment) => ({
-    ...emptyAssignment,
-    ...assignment,
-  })),
-  addAssignment: (assignment) => {
-    const added = { ...assignment, _id: crypto.randomUUID() };
+  assignments: [],
+  setAssignments: (assignments) => set({ assignments }),
+  addAssignment: async (assignment) => {
+    const added = await client.createAssignment(assignment);
     set((state) => ({ assignments: [...state.assignments, added] }));
-    return added;
   },
-  updateAssignment: (assignment) =>
+  updateAssignment: async (assignment) => {
+    const updated = await client.updateAssignment(assignment);
     set((state) => ({
-      assignments: state.assignments.map((row) =>
-        row._id === assignment._id && row.course === assignment.course
-          ? { ...assignment }
-          : row,
-      ),
-    })),
-  deleteAssignment: (id, course) =>
-    set((state) => ({
-      assignments: state.assignments.filter(
-        (row) => row._id !== id || row.course !== course,
-      ),
-    })),
+      assignments: state.assignments.map((row) => row._id === updated._id ? updated : row),
+    }));
+  },
+  deleteAssignment: async (id) => {
+    await client.deleteAssignment(id);
+    set((state) => ({ assignments: state.assignments.filter((row) => row._id !== id) }));
+  },
 }));

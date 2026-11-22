@@ -1,48 +1,60 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "next/navigation";
 import { FaUserCircle } from "react-icons/fa";
 import {
   emptyUser,
   useAccountContext,
 } from "../../../../account/AccountContext";
-import { useUsersStore } from "../../../../store/usersStore";
-import { useEnrollmentsStore } from "../../../../store/enrollmentsStore";
+import { addPerson, findPeople, unenrollFromCourse, updateUser } from "../../../../client";
+import type { User } from "../../../../store/types";
+import { httpError } from "@/app/http";
+import { useRequest } from "@/app/useRequest";
 
 export default function PeopleTable() {
   const { cid } = useParams<{ cid: string }>();
-  const { users, addUser, updateUser } = useUsersStore();
-  const { enrollments, enroll, unenroll } = useEnrollmentsStore();
   const { currentUser, setCurrentUser } = useAccountContext();
+  const [people, setPeople] = useState<User[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const [draft, setDraft] = useState({ ...emptyUser });
   const [showForm, setShowForm] = useState(false);
-  const [error, setError] = useState("");
-  const enrolled = users.filter((user) =>
-    enrollments.some((row) => row.user === user._id && row.course === cid),
-  );
+  const { run, pending, error } = useRequest();
+  const canManage = !!currentUser && ["FACULTY", "ADMIN"].includes(currentUser.role);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+    findPeople(cid, signal)
+      .then((rows) => {
+        if (signal.aborted) return;
+        setPeople(rows);
+        setLoaded(true);
+      })
+      .catch((requestError) => {
+        if (!signal.aborted) setLoadError(httpError(requestError));
+      });
+    return () => controller.abort();
+  }, [cid]);
+
   const save = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!draft.username.trim() || !draft.firstName.trim()) return;
-    const existing = users.find(
-      (user) =>
-        user.username === draft.username.trim() && user._id !== draft._id,
-    );
-    if (existing) {
-      setError("That username is already in use.");
-      return;
-    }
-    if (draft._id) {
-      updateUser(draft);
-      if (currentUser?._id === draft._id) setCurrentUser({ ...draft });
-    } else {
-      const added = addUser({ ...draft, username: draft.username.trim() });
-      enroll(added._id, cid);
-    }
-    setDraft({ ...emptyUser });
-    setShowForm(false);
-    setError("");
+    void run(async () => {
+      if (draft._id) {
+        const updated = await updateUser(draft);
+        setPeople((rows) => rows.map((row) => row._id === updated._id ? updated : row));
+        if (currentUser?._id === updated._id) setCurrentUser(updated);
+      } else {
+        const person = await addPerson(cid, draft);
+        setPeople((rows) => [...rows, person]);
+      }
+      setDraft({ ...emptyUser });
+      setShowForm(false);
+    });
   };
+
   const fields = [
     { key: "firstName", label: "First name" },
     { key: "lastName", label: "Last name" },
@@ -53,23 +65,26 @@ export default function PeopleTable() {
     { key: "section", label: "Section" },
   ] as const;
 
+  if (loadError) return <p role="alert" className="text-red-700">{loadError}</p>;
+  if (!loaded) return <p role="status">Loading people…</p>;
+
   return (
     <div id="wd-people-table" className="overflow-x-auto">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-xl font-semibold">People</h2>
-        <button
+        {canManage && <button
           type="button"
           onClick={() => {
             setDraft({ ...emptyUser });
             setShowForm(true);
-            setError("");
           }}
           className="rounded bg-red-600 px-3 py-2 text-white"
         >
           + People
-        </button>
+        </button>}
       </div>
-      {showForm && (
+      {error && <p role="alert" className="my-2 text-red-700">{error}</p>}
+      {canManage && showForm && (
         <form
           onSubmit={save}
           className="mb-4 max-w-2xl rounded border border-neutral-300 p-4"
@@ -85,7 +100,7 @@ export default function PeopleTable() {
                 </label>
                 <input
                   id={`wd-person-${key}`}
-                  required={key === "username" || key === "firstName"}
+                  required={key === "username" || key === "firstName" || (key === "password" && !draft._id)}
                   type={
                     key === "password"
                       ? "password"
@@ -121,14 +136,10 @@ export default function PeopleTable() {
               </select>
             </div>
           </div>
-          {error && (
-            <p role="alert" className="my-2 text-red-700">
-              {error}
-            </p>
-          )}
           <div className="mt-3 flex gap-2">
             <button
               type="submit"
+              disabled={pending}
               className="rounded bg-blue-600 px-3 py-2 text-white"
             >
               Save person
@@ -152,11 +163,11 @@ export default function PeopleTable() {
             <th className="p-2">Role</th>
             <th className="p-2">Last Activity</th>
             <th className="p-2">Total Activity</th>
-            <th className="p-2">Actions</th>
+            {canManage && <th className="p-2">Actions</th>}
           </tr>
         </thead>
         <tbody>
-          {enrolled.map((user) => (
+          {people.map((user) => (
             <tr key={user._id} className="odd:bg-neutral-50">
               <td className="wd-full-name p-2 text-nowrap">
                 <FaUserCircle className="me-2 inline align-middle text-4xl text-neutral-500" />
@@ -168,15 +179,14 @@ export default function PeopleTable() {
               <td className="wd-role p-2">{user.role}</td>
               <td className="wd-last-activity p-2">{user.lastActivity}</td>
               <td className="wd-total-activity p-2">{user.totalActivity}</td>
-              <td className="p-2">
+              {canManage && <td className="p-2">
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      setDraft({ ...user });
+                      setDraft({ ...user, password: "" });
                       setShowForm(true);
-                      setError("");
-                    }}
+                              }}
                     className="rounded border px-2 py-1"
                   >
                     Edit
@@ -184,13 +194,17 @@ export default function PeopleTable() {
                   <button
                     type="button"
                     aria-label={`Remove ${user.firstName} ${user.lastName} from course`}
-                    onClick={() => unenroll(user._id, cid)}
+                    disabled={pending}
+                    onClick={() => void run(async () => {
+                      await unenrollFromCourse(user._id, cid);
+                      setPeople((rows) => rows.filter((row) => row._id !== user._id));
+                    })}
                     className="rounded bg-red-600 px-2 py-1 text-white"
                   >
                     Delete
                   </button>
                 </div>
-              </td>
+              </td>}
             </tr>
           ))}
         </tbody>

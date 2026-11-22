@@ -1,9 +1,11 @@
 "use client";
 
+import { useRequest } from "@/app/useRequest";
 import { FaPlus, FaSearch } from "react-icons/fa";
 import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useAccountContext } from "../../../account/AccountContext";
 import {
   useAssignmentsStore,
   type Assignment,
@@ -12,8 +14,10 @@ import AssignmentItem from "./AssignmentItem";
 
 export default function Assignments() {
   const { cid } = useParams<{ cid: string }>();
+  const { currentUser } = useAccountContext();
   const { assignments: allAssignments, deleteAssignment } =
     useAssignmentsStore();
+  const { run, pending, error } = useRequest();
   const [search, setSearch] = useState("");
   const [pendingDelete, setPendingDelete] = useState<Assignment | null>(null);
   const assignments = allAssignments.filter(
@@ -36,22 +40,24 @@ export default function Assignments() {
             className="rounded border py-1.5 pr-3 pl-9 text-sm"
           />
         </div>
-        <div className="flex gap-2">
-          <button
-            id="wd-add-assignment-group"
-            type="button"
-            className="inline-flex items-center gap-1 rounded border px-3 py-1.5 text-sm"
-          >
-            <FaPlus /> Group
-          </button>
-          <Link
-            id="wd-add-assignment"
-            href={`/courses/${cid}/assignments/new`}
-            className="inline-flex items-center gap-1 rounded bg-red-600 px-3 py-1.5 text-sm font-medium text-white"
-          >
-            <FaPlus /> Assignment
-          </Link>
-        </div>
+        {currentUser && (
+          <div className="flex gap-2">
+            <button
+              id="wd-add-assignment-group"
+              type="button"
+              className="inline-flex items-center gap-1 rounded border px-3 py-1.5 text-sm"
+            >
+              <FaPlus /> Group
+            </button>
+            <Link
+              id="wd-add-assignment"
+              href={`/courses/${cid}/assignments/new`}
+              className="inline-flex items-center gap-1 rounded bg-red-600 px-3 py-1.5 text-sm font-medium text-white"
+            >
+              <FaPlus /> Assignment
+            </Link>
+          </div>
+        )}
       </div>
       <h3
         id="wd-assignments-title"
@@ -71,7 +77,7 @@ export default function Assignments() {
             key={assignment._id}
             cid={cid}
             aid={assignment._id}
-            onDelete={() => setPendingDelete(assignment)}
+            onDelete={currentUser ? () => setPendingDelete(assignment) : undefined}
             title={assignment.title}
             details={`Multiple Modules | Not available until ${assignment.available} | Due ${assignment.due} | ${assignment.points} pts`}
           />
@@ -94,6 +100,7 @@ export default function Assignments() {
             <p className="mb-4">
               Are you sure you want to delete {pendingDelete.title}?
             </p>
+            {error && <p role="alert" className="mb-2 text-red-700">{error}</p>}
             <div className="flex justify-end gap-2">
               <button
                 type="button"
@@ -105,10 +112,11 @@ export default function Assignments() {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  deleteAssignment(pendingDelete._id, cid);
+                disabled={pending}
+                onClick={() => void run(async () => {
+                  await deleteAssignment(pendingDelete._id);
                   setPendingDelete(null);
-                }}
+                })}
                 className="rounded bg-red-600 px-3 py-2 text-white"
               >
                 Yes, delete

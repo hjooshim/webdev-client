@@ -1,6 +1,8 @@
+import { useAccountContext } from "../../../account/AccountContext";
 import ModuleEditor from "./ModuleEditor";
 
 export default function ModulesControls() {
+  const { currentUser } = useAccountContext();
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2">
       <button
@@ -22,7 +24,7 @@ export default function ModulesControls() {
       >
         <option value="publish-all">Publish All</option>
       </select>
-      <ModuleEditor />
+      {currentUser && <ModuleEditor />}
     </div>
   );
 }
